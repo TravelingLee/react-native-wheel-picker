@@ -1,0 +1,31 @@
+# Source maps
+*.map
+
+# Test files
+__tests__/
+__mocks__/
+__fixtures__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Development files
+.eslintrc.js
+.prettierrc
+tsconfig.json
+tsconfig.build.json
+example/
+
+# Build artifacts
+ios/build/
+android/build/
+android/.gradle/
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+.DS_Store
+*.log

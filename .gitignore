@@ -1,0 +1,37 @@
+# OSX
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+lib/
+
+# iOS
+ios/build/
+*.xcworkspace
+*.xcuserstate
+Pods/
+Podfile.lock
+
+# Android
+android/build/
+android/.gradle/
+*.keystore
+!debug.keystore
+local.properties
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+coverage/
+
+# Misc
+*.log
+.env*
