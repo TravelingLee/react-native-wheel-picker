@@ -26,6 +26,9 @@ class WheelPickerView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    private var lastEmitTime = 0L
+    private var onValueChanging: ((Int) -> Unit)? = null
+
     private var items: List<String> = emptyList()
     private var selectedIndex: Int = 0
     private var lastSelectedIndex: Int = 0
@@ -83,6 +86,7 @@ class WheelPickerView @JvmOverloads constructor(
             scrollOffset += distanceY
             clampScrollOffset()
             checkAndTriggerHaptic()
+            emitValueChanging()
             invalidate()
             return true
         }
@@ -191,6 +195,7 @@ class WheelPickerView @JvmOverloads constructor(
             scrollOffset = scroller.currY.toFloat()
             clampScrollOffset()
             checkAndTriggerHaptic()
+            emitValueChanging()
             postInvalidateOnAnimation()
 
             if (scroller.isFinished) {
@@ -240,9 +245,21 @@ class WheelPickerView @JvmOverloads constructor(
         if (targetIndex != selectedIndex) {
             selectedIndex = targetIndex
             onValueChanged?.invoke(selectedIndex)
+            onValueChanging?.invoke(targetIndex)
         }
 
         invalidate()
+    }
+
+    private fun emitValueChanging() {
+        if (items.isEmpty()) return
+        val currentIndex = (scrollOffset / itemHeight).roundToInt().coerceIn(0, items.size - 1)
+
+        val now = System.currentTimeMillis()
+        if (now - lastEmitTime >= 50) {           // 50ms 限频
+            lastEmitTime = now
+            onValueChanging?.invoke(currentIndex)
+        }
     }
 
     fun setItems(newItems: List<String>) {
@@ -266,6 +283,10 @@ class WheelPickerView @JvmOverloads constructor(
 
     fun setOnValueChangedListener(listener: (Int) -> Unit) {
         onValueChanged = listener
+    }
+
+    fun setOnValueChangingListener(listener: (Int) -> Unit) {
+        onValueChanging = listener
     }
 
     fun setFontFamily(family: String?) {

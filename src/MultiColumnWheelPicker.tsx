@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { WheelPicker } from './WheelPicker';
 
 export interface WheelColumn {
@@ -7,22 +7,22 @@ export interface WheelColumn {
    * Array of string values for this column
    */
   values: string[];
-
   /**
    * Optional unit label for this column
    */
   unit?: string;
-
   /**
    * Currently selected index for this column
    */
   selectedIndex: number;
-
   /**
-   * Callback when this column's value changes
+   * Callback when this column's value changes (after snap)
    */
   onSelect: (index: number) => void;
-
+  /**
+   * Callback when value is changing during scroll
+   */
+  onValueChanging?: (index: number) => void;
   /**
    * Optional width for this column (flex value)
    * @default 1
@@ -35,17 +35,14 @@ export interface MultiColumnWheelPickerProps {
    * Array of column configurations
    */
   columns: WheelColumn[];
-
   /**
    * Custom font family for all columns
    */
   fontFamily?: string;
-
   /**
    * Style for the picker container
    */
   style?: StyleProp<ViewStyle>;
-
   /**
    * Test ID for e2e testing
    */
@@ -73,6 +70,7 @@ export function MultiColumnWheelPicker({
             unit={column.unit}
             fontFamily={fontFamily}
             onValueChange={column.onSelect}
+            onValueChanging={column.onValueChanging}
             style={styles.picker}
           />
         </View>

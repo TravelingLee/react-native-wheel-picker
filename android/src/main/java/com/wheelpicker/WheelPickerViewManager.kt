@@ -5,8 +5,8 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
 @ReactModule(name = WheelPickerViewManager.REACT_CLASS)
 class WheelPickerViewManager : SimpleViewManager<WheelPickerView>() {
@@ -19,24 +19,40 @@ class WheelPickerViewManager : SimpleViewManager<WheelPickerView>() {
 
     override fun createViewInstance(context: ThemedReactContext): WheelPickerView {
         return WheelPickerView(context).apply {
+
+            // 原有最终值回调
             setOnValueChangedListener { index ->
-                val event = Arguments.createMap().apply {
-                    putInt("index", index)
-                }
-                context.getJSModule(RCTEventEmitter::class.java)
-                    .receiveEvent(id, "onValueChange", event)
+                val eventData = Arguments.createMap().apply { putInt("index", index) }
+                val surfaceId = UIManagerHelper.getSurfaceId(context)
+                val event = OnValueChangeEvent(surfaceId, id, eventData)
+                dispatchEvent(context, event)
+            }
+
+            // 新增：实时滚动回调
+            setOnValueChangingListener { index ->
+                val eventData = Arguments.createMap().apply { putInt("index", index) }
+                val surfaceId = UIManagerHelper.getSurfaceId(context)
+                val event = OnValueChangingEvent(surfaceId, id, eventData)
+                dispatchEvent(context, event)
             }
         }
+    }
+
+    // 统一的事件分发方法
+    private fun dispatchEvent(context: ThemedReactContext, event: com.facebook.react.uimanager.events.Event<*>) {
+        val reactContext = context.reactApplicationContext
+        val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, event.viewTag)
+        dispatcher?.dispatchEvent(event)
     }
 
     @ReactProp(name = "items")
     fun setItems(view: WheelPickerView, items: ReadableArray?) {
         items?.let {
-            val itemList = mutableListOf<String>()
+            val list = mutableListOf<String>()
             for (i in 0 until it.size()) {
-                itemList.add(it.getString(i) ?: "")
+                list.add(it.getString(i) ?: "")
             }
-            view.setItems(itemList)
+            view.setItems(list)
         }
     }
 
@@ -57,7 +73,8 @@ class WheelPickerViewManager : SimpleViewManager<WheelPickerView>() {
 
     override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> {
         return mapOf(
-            "onValueChange" to mapOf("registrationName" to "onValueChange")
+            "onValueChange" to mapOf("registrationName" to "onValueChange"),
+            "onValueChanging" to mapOf("registrationName" to "onValueChanging")
         )
     }
 }
